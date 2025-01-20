@@ -8,6 +8,7 @@ const content = document.querySelector('.content');
 const ambientBg = document.querySelector('.ambient-background');
 const canvas = document.getElementById('particles');
 const ctx = canvas.getContext('2d');
+const title = document.querySelector('h1');
 
 // Card hover effect
 cards.forEach(card => {
@@ -100,7 +101,7 @@ function resizeCanvas() {
 resizeCanvas();
 window.addEventListener('resize', resizeCanvas);
 
-// Particle system
+// Enhanced Particle system
 class Particle {
     constructor() {
         this.reset();
@@ -109,15 +110,25 @@ class Particle {
     reset() {
         this.x = Math.random() * canvas.width;
         this.y = Math.random() * canvas.height;
-        this.size = Math.random() * 2;
-        this.speedX = (Math.random() - 0.5) * 0.5;
-        this.speedY = (Math.random() - 0.5) * 0.5;
-        this.opacity = Math.random() * 0.5;
+        this.size = Math.random() * 2 + 0.5;
+        this.speedX = (Math.random() - 0.5) * 0.3;
+        this.speedY = (Math.random() - 0.5) * 0.3;
+        this.opacity = Math.random() * 0.5 + 0.2;
+        this.growing = Math.random() > 0.5;
     }
     
     update() {
         this.x += this.speedX;
         this.y += this.speedY;
+        
+        // Subtle size pulsing
+        if (this.growing) {
+            this.size += 0.02;
+            if (this.size > 2.5) this.growing = false;
+        } else {
+            this.size -= 0.02;
+            if (this.size < 0.5) this.growing = true;
+        }
         
         if (this.x < 0 || this.x > canvas.width || this.y < 0 || this.y > canvas.height) {
             this.reset();
@@ -125,14 +136,14 @@ class Particle {
     }
     
     draw() {
-        ctx.fillStyle = `rgba(183, 148, 244, ${this.opacity})`;
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(183, 148, 244, ${this.opacity})`;
         ctx.fill();
     }
 }
 
-const particles = Array(100).fill().map(() => new Particle());
+const particles = Array(80).fill().map(() => new Particle());
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -156,11 +167,19 @@ let targetY = 0;
 document.addEventListener('mousemove', (e) => {
     targetX = (e.clientX / window.innerWidth) * 100;
     targetY = (e.clientY / window.innerHeight) * 100;
+    
+    // Subtle title tilt effect
+    const rect = title.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.top + rect.height / 2;
+    const moveX = (e.clientX - centerX) / 50;
+    const moveY = (e.clientY - centerY) / 50;
+    title.style.transform = `perspective(1000px) rotateX(${-moveY}deg) rotateY(${moveX}deg)`;
 });
 
 function updateAmbientBackground() {
-    mouseX += (targetX - mouseX) * 0.1;
-    mouseY += (targetY - mouseY) * 0.1;
+    mouseX += (targetX - mouseX) * 0.05;
+    mouseY += (targetY - mouseY) * 0.05;
     
     ambientBg.style.background = `
         radial-gradient(circle at ${mouseX}% ${mouseY}%, 
@@ -210,13 +229,22 @@ document.querySelectorAll('.section, .about-card, .value-card').forEach(el => {
     observer.observe(el);
 });
 
-// Form handling with enhanced feedback
+// Enhanced form handling
 if (form) {
     const inputs = form.querySelectorAll('input, textarea');
     
     inputs.forEach(input => {
         input.addEventListener('focus', () => {
             input.parentElement.classList.add('focused');
+            // Subtle particle attraction to focused input
+            particles.forEach(particle => {
+                const rect = input.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                const angle = Math.atan2(centerY - particle.y, centerX - particle.x);
+                particle.speedX += Math.cos(angle) * 0.1;
+                particle.speedY += Math.sin(angle) * 0.1;
+            });
         });
         
         input.addEventListener('blur', () => {
@@ -235,11 +263,22 @@ if (form) {
         inputs.forEach(input => input.disabled = true);
         submitBtn.disabled = true;
         
-        // Show loading state
+        // Show loading state with particle burst
         submitBtn.innerHTML = `
             <span class="loading-text">Processing</span>
             <span class="loading-dots">...</span>
         `;
+        
+        // Particle burst effect
+        for (let i = 0; i < 20; i++) {
+            const particle = new Particle();
+            const rect = submitBtn.getBoundingClientRect();
+            particle.x = rect.left + rect.width / 2;
+            particle.y = rect.top + rect.height / 2;
+            particle.speedX = (Math.random() - 0.5) * 5;
+            particle.speedY = (Math.random() - 0.5) * 5;
+            particles.push(particle);
+        }
         
         try {
             // Simulate API call

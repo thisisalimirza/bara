@@ -44,7 +44,9 @@ body {
     height: 100%;
     z-index: 1;
     pointer-events: none;
-    opacity: 0.5;
+    opacity: 0.3;
+    mix-blend-mode: screen;
+    filter: blur(1px);
 }
 
 .ambient-background {
@@ -55,7 +57,19 @@ body {
     height: 100%;
     z-index: 0;
     transition: background 1s ease;
-    background: radial-gradient(circle at center, rgba(183, 148, 244, 0.1), transparent 50%);
+    background: radial-gradient(circle at center, rgba(183, 148, 244, 0.1), transparent 50%),
+                radial-gradient(circle at 20% 20%, rgba(183, 148, 244, 0.05), transparent 30%),
+                radial-gradient(circle at 80% 80%, rgba(183, 148, 244, 0.05), transparent 30%);
+    animation: ambientShift 20s ease-in-out infinite alternate;
+}
+
+@keyframes ambientShift {
+    0% {
+        background-position: 0% 0%, 0% 0%, 0% 0%;
+    }
+    100% {
+        background-position: 100% 100%, 20% 80%, 80% 20%;
+    }
 }
 
 .content {
@@ -108,12 +122,20 @@ h1 {
     font-size: clamp(2rem, 5vw, 3.5rem);
     font-weight: 800;
     margin: 0;
-    background: linear-gradient(135deg, var(--text), var(--text-secondary));
+    background: linear-gradient(135deg, var(--text) 0%, var(--text-secondary) 50%, var(--text) 100%);
+    background-size: 200% auto;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     letter-spacing: -0.02em;
     position: relative;
     line-height: 1.1;
+    animation: shimmer 8s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 h1::after {
@@ -152,13 +174,14 @@ p {
 input {
     width: 100%;
     padding: 1rem;
-    background: transparent;
+    background: rgba(183, 148, 244, 0.03);
     border: 1px solid rgba(183, 148, 244, 0.2);
     border-radius: 8px;
     color: var(--text);
     font-size: 1rem;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-align: center;
+    backdrop-filter: blur(10px);
 }
 
 input::placeholder {
@@ -169,13 +192,16 @@ input::placeholder {
 input:focus {
     outline: none;
     border-color: var(--primary);
-    box-shadow: 0 0 20px rgba(183, 148, 244, 0.1);
+    box-shadow: 0 0 30px rgba(183, 148, 244, 0.15);
+    background: rgba(183, 148, 244, 0.05);
+    transform: translateY(-1px);
 }
 
 .submit-button {
     width: 100%;
     padding: 1rem;
-    background: transparent;
+    background: linear-gradient(135deg, transparent, rgba(183, 148, 244, 0.1), transparent);
+    background-size: 200% auto;
     border: 1px solid var(--primary);
     border-radius: 8px;
     color: var(--text);
@@ -184,15 +210,23 @@ input:focus {
     letter-spacing: 0.05em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
 }
 
 .submit-button:hover {
-    background: rgba(183, 148, 244, 0.1);
+    background-position: 100% center;
     transform: translateY(-2px);
-    box-shadow: var(--glow);
+    box-shadow: var(--glow),
+                inset 0 0 20px rgba(183, 148, 244, 0.2);
+    border-color: rgba(183, 148, 244, 0.8);
+}
+
+.submit-button:active {
+    transform: translateY(0);
+    box-shadow: var(--glow),
+                inset 0 0 30px rgba(183, 148, 244, 0.3);
 }
 
 /* Hidden Content Styles */
@@ -211,41 +245,60 @@ input:focus {
     opacity: 0.8;
 }
 
-.locked-section {
-    padding: 1rem;
-    gap: 0.25rem;
-}
-
-.locked-section::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
+.login-button {
     width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        135deg,
-        transparent,
-        rgba(183, 148, 244, 0.05),
-        transparent
-    );
-    transform: translateX(-100%);
-    transition: transform 0.5s ease;
+    padding: 1rem;
+    background: transparent;
+    border: 1px solid rgba(183, 148, 244, 0.3);
+    border-radius: 8px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-top: 0.5rem;
 }
 
-.locked-section:hover {
-    background: rgba(183, 148, 244, 0.08);
-    transform: translateY(-2px);
+.login-button:hover {
+    background: rgba(183, 148, 244, 0.05);
+    color: var(--text);
+    border-color: rgba(183, 148, 244, 0.5);
+    transform: translateY(-1px);
 }
 
-.locked-section:hover::before {
-    transform: translateX(100%);
+.locked-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 1rem;
+    gap: 0.5rem;
+    background: rgba(183, 148, 244, 0.03);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
 }
 
 .lock-icon {
-    width: 20px;
-    height: 20px;
-    margin-bottom: 0.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    margin: 0 auto;
+}
+
+.lock-icon svg {
+    width: 100%;
+    height: 100%;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.locked-section:hover .lock-icon svg {
+    opacity: 1;
 }
 
 .locked-section span {
@@ -366,18 +419,13 @@ input:focus {
     }
 
     .locked-section {
-        flex: 1 1 auto;
-        min-width: 100px;
-        max-width: calc(33% - 0.5rem);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        padding: 0.5rem 0.25rem;
-        gap: 0.25rem;
+        padding: 0.75rem;
+        gap: 0.35rem;
     }
 
     .lock-icon {
-        margin: 0;
+        width: 20px;
+        height: 20px;
     }
 
     .locked-hint {
@@ -399,6 +447,11 @@ input:focus {
     .footer-hint {
         margin-top: 0.75rem;
         padding-top: 0.75rem;
+    }
+
+    .login-button {
+        padding: 0.75rem;
+        font-size: 0.85rem;
     }
 }
 
